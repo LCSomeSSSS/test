@@ -1,0 +1,8 @@
+platform :ios, ’15.0’
+use_frameworks!
+
+target ‘test’ do
+  pod 'SnapKit'
+  pod 'Kingfisher'
+
+end
