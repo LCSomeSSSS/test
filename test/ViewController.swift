@@ -9,7 +9,6 @@
 import UIKit
 import SnapKit
 
-// MARK: - ViewController
 class ViewController: UIViewController {
 
     private lazy var items: [String] = {
