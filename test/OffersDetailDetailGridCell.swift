@@ -16,7 +16,6 @@ final class OffersDetailDetailGridCell: UITableViewCell {
     private let itemSpacing: CGFloat = 8
     private var cards: [OffersDetailTierCardModel] = []
     private var maxCardHeight: CGFloat = 0
-    private var collectionHeightConstraint: Constraint?
 
     private lazy var flowLayout: UICollectionViewFlowLayout = {
         let layout = UICollectionViewFlowLayout()
@@ -25,18 +24,15 @@ final class OffersDetailDetailGridCell: UITableViewCell {
         return layout
     }()
 
-    private lazy var collectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
-        collectionView.backgroundColor = .clear
-        collectionView.showsHorizontalScrollIndicator = false
-        collectionView.contentInset = sectionInsets
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(
+    private lazy var collectionContainerView: OffersDetailCollectionContainerView = {
+        let view = OffersDetailCollectionContainerView(collectionViewLayout: flowLayout)
+        view.collectionView.dataSource = self
+        view.collectionView.delegate = self
+        view.collectionView.register(
             OffersDetailInfoCardCollectionCell.self,
             forCellWithReuseIdentifier: OffersDetailInfoCardCollectionCell.reuseIdentifier
         )
-        return collectionView
+        return view
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -56,9 +52,17 @@ final class OffersDetailDetailGridCell: UITableViewCell {
         maxCardHeight = cards.map {
             OffersDetailInfoCardCollectionCell.preferredHeight(for: $0)
         }.max() ?? 0
-        collectionHeightConstraint?.update(offset: maxCardHeight)
         flowLayout.invalidateLayout()
-        collectionView.reloadData()
+        collectionContainerView.configure(
+            .init(
+                height: maxCardHeight,
+                contentInset: sectionInsets,
+                scrollIndicatorInsets: sectionInsets,
+                showsHorizontalScrollIndicator: false,
+                showsVerticalScrollIndicator: false
+            )
+        )
+        collectionContainerView.collectionView.reloadData()
     }
 }
 
@@ -66,13 +70,12 @@ final class OffersDetailDetailGridCell: UITableViewCell {
 private extension OffersDetailDetailGridCell {
 
     func setupUI() {
-        contentView.addSubview(collectionView)
+        contentView.addSubview(collectionContainerView)
 
-        collectionView.snp.makeConstraints { make in
+        collectionContainerView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(10)
             make.leading.trailing.equalToSuperview().inset(16)
             make.bottom.equalToSuperview()
-            collectionHeightConstraint = make.height.equalTo(0).constraint
         }
     }
 }

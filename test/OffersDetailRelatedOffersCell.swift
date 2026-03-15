@@ -14,26 +14,7 @@ final class OffersDetailRelatedOffersCell: UITableViewCell {
 
     private let sectionInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
     private let itemSpacing: CGFloat = 8
-    private var items: [(String, String, UIColor)] = []
-
-    private lazy var cardView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        return view
-    }()
-
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
-        label.textColor = .label
-        return label
-    }()
-
-    private lazy var dividerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(red: 236 / 255, green: 236 / 255, blue: 236 / 255, alpha: 1)
-        return view
-    }()
+    private var items: [OffersDetailRelatedOfferItem] = []
 
     private lazy var flowLayout: UICollectionViewFlowLayout = {
         let layout = UICollectionViewFlowLayout()
@@ -42,18 +23,15 @@ final class OffersDetailRelatedOffersCell: UITableViewCell {
         return layout
     }()
 
-    private lazy var collectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
-        collectionView.backgroundColor = .clear
-        collectionView.showsHorizontalScrollIndicator = false
-        collectionView.contentInset = sectionInsets
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(
+    private lazy var sectionView: OffersDetailCollectionSectionView = {
+        let view = OffersDetailCollectionSectionView(collectionViewLayout: flowLayout)
+        view.collectionView.dataSource = self
+        view.collectionView.delegate = self
+        view.collectionView.register(
             OffersDetailRelatedOfferCollectionCell.self,
             forCellWithReuseIdentifier: OffersDetailRelatedOfferCollectionCell.reuseIdentifier
         )
-        return collectionView
+        return view
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -68,10 +46,25 @@ final class OffersDetailRelatedOffersCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(title: String, items: [(String, String, UIColor)]) {
-        titleLabel.text = title
+    func configure(title: String, items: [OffersDetailRelatedOfferItem]) {
         self.items = items
-        collectionView.reloadData()
+        sectionView.configure(
+            .init(
+                title: title,
+                collectionConfiguration: .init(
+                    height: 160,
+                    contentInset: sectionInsets,
+                    scrollIndicatorInsets: sectionInsets,
+                    showsHorizontalScrollIndicator: false,
+                    showsVerticalScrollIndicator: false
+                ),
+                showsDivider: true,
+                topInset: 0,
+                collectionTopSpacing: 10,
+                dividerTopSpacing: 12
+            )
+        )
+        sectionView.collectionView.reloadData()
     }
 }
 
@@ -79,32 +72,10 @@ final class OffersDetailRelatedOffersCell: UITableViewCell {
 private extension OffersDetailRelatedOffersCell {
 
     func setupUI() {
-        contentView.addSubview(cardView)
-        cardView.addSubview(titleLabel)
-        cardView.addSubview(collectionView)
-        cardView.addSubview(dividerView)
-
-        cardView.snp.makeConstraints { make in
+        contentView.addSubview(sectionView)
+        sectionView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(10)
             make.leading.trailing.equalToSuperview().inset(16)
-            make.bottom.equalToSuperview()
-        }
-
-        titleLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
-        }
-
-        collectionView.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(10)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(160)
-        }
-
-        dividerView.snp.makeConstraints { make in
-            make.top.equalTo(collectionView.snp.bottom).offset(12)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(0.5)
             make.bottom.equalToSuperview()
         }
     }
@@ -123,7 +94,7 @@ extension OffersDetailRelatedOffersCell: UICollectionViewDataSource {
             for: indexPath
         ) as! OffersDetailRelatedOfferCollectionCell
         let item = items[indexPath.item]
-        cell.configure(title: item.0, subtitle: item.1, color: item.2)
+        cell.configure(item: item)
         return cell
     }
 }

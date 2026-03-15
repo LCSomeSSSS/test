@@ -25,17 +25,18 @@ final class OffersDetailViewController1: UIViewController {
     private var lastSummaryMeasureWidth: CGFloat = 0
 
     private enum RowItem {
-        case hero
         case summary
         case summaryInfo
         case actions
+        case qualifiedOffer
+        case upgradePrompt
         case details
         case howToUseStep(Int)
         case related
     }
 
     private lazy var rows: [RowItem] = {
-        var items: [RowItem] = [.hero, .summary, .summaryInfo, .actions, .details]
+        var items: [RowItem] = [ .summary, .summaryInfo, .actions, .qualifiedOffer, .upgradePrompt, .details]
         items.append(contentsOf: usageSteps.indices.map { .howToUseStep($0) })
         items.append(contentsOf: [.related])
         return items
@@ -135,12 +136,20 @@ final class OffersDetailViewController1: UIViewController {
         ]
     }()
 
-    private lazy var relatedOffers: [(String, String, UIColor)] = {
+    private lazy var upgradePromptMethods: [OffersDetailUpgradePromptCell.UpgradeMethod] = {
         [
-            ("Summer Staycation", "Exclusive", UIColor(red: 171 / 255, green: 120 / 255, blue: 44 / 255, alpha: 1)),
-            ("Deluxe Tea View", "Andaz Macau", UIColor(red: 206 / 255, green: 150 / 255, blue: 98 / 255, alpha: 1)),
-            ("Galaxy Lucky Draw", "Macau", UIColor(red: 98 / 255, green: 92 / 255, blue: 116 / 255, alpha: 1)),
-            ("Galaxy Lucky Draw", "Macau", UIColor(red: 98 / 255, green: 92 / 255, blue: 116 / 255, alpha: 1))
+            .init(icon: UIImage(systemName: "building.2"), title: "Book Hotel"),
+            .init(icon: UIImage(systemName: "fork.knife"), title: "Book Dining"),
+            .init(icon: UIImage(systemName: "mic"), title: "Book Concert")
+        ]
+    }()
+
+    private lazy var relatedOffers: [OffersDetailRelatedOfferItem] = {
+        [
+            .init(title: "Summer Staycation", subtitle: "Exclusive", color: UIColor(red: 171 / 255, green: 120 / 255, blue: 44 / 255, alpha: 1)),
+            .init(title: "Deluxe Tea View", subtitle: "Andaz Macau", color: UIColor(red: 206 / 255, green: 150 / 255, blue: 98 / 255, alpha: 1)),
+            .init(title: "Galaxy Lucky Draw", subtitle: "Macau", color: UIColor(red: 98 / 255, green: 92 / 255, blue: 116 / 255, alpha: 1)),
+            .init(title: "Galaxy Lucky Draw", subtitle: "Macau", color: UIColor(red: 98 / 255, green: 92 / 255, blue: 116 / 255, alpha: 1))
         ]
     }()
 
@@ -155,10 +164,17 @@ final class OffersDetailViewController1: UIViewController {
         tableView.estimatedRowHeight = 120
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(OffersDetailHeroCell.self, forCellReuseIdentifier: OffersDetailHeroCell.reuseIdentifier)
         tableView.register(OffersDetailSummaryCell.self, forCellReuseIdentifier: OffersDetailSummaryCell.reuseIdentifier)
         tableView.register(OffersDetailSummaryInfoCell.self, forCellReuseIdentifier: OffersDetailSummaryInfoCell.reuseIdentifier)
         tableView.register(OffersDetailActionCell.self, forCellReuseIdentifier: OffersDetailActionCell.reuseIdentifier)
+        tableView.register(
+            OffersDetailQualifiedOfferCell.self,
+            forCellReuseIdentifier: OffersDetailQualifiedOfferCell.reuseIdentifier
+        )
+        tableView.register(
+            OffersDetailUpgradePromptCell.self,
+            forCellReuseIdentifier: OffersDetailUpgradePromptCell.reuseIdentifier
+        )
         tableView.register(OffersDetailDetailGridCell.self, forCellReuseIdentifier: OffersDetailDetailGridCell.reuseIdentifier)
         tableView.register(OffersDetailStepRowCell.self, forCellReuseIdentifier: OffersDetailStepRowCell.reuseIdentifier)
         tableView.register(OffersDetailRelatedOffersCell.self, forCellReuseIdentifier: OffersDetailRelatedOffersCell.reuseIdentifier)
@@ -267,20 +283,6 @@ extension OffersDetailViewController1: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch rowItem(at: indexPath) {
-        case .hero:
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: OffersDetailHeroCell.reuseIdentifier,
-                for: indexPath
-            ) as! OffersDetailHeroCell
-            cell.onBackTap = { [weak self] in
-                self?.navigationController?.popViewController(animated: true)
-            }
-            cell.configure(
-                badgeText: "Offers Preview",
-                title: "Color placeholder for the top banner"
-            )
-            return cell
-
         case .summary:
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: OffersDetailSummaryCell.reuseIdentifier,
@@ -327,6 +329,30 @@ extension OffersDetailViewController1: UITableViewDataSource {
             cell.configure(
                 hintText: "Specific members who have joined this promotional activity can unlock the privilege entry button.",
                 primaryTitle: "Join Lucky Privilege"
+            )
+            return cell
+
+        case .qualifiedOffer:
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: OffersDetailQualifiedOfferCell.reuseIdentifier,
+                for: indexPath
+            ) as! OffersDetailQualifiedOfferCell
+            cell.configure(
+                title: "You’ve Qualified to Enjoy This Exclusive Offer.",
+                subtitle: "Galaxy Privilege Diamond Members can enjoy exclusive access to this offer."
+            )
+            return cell
+
+        case .upgradePrompt:
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: OffersDetailUpgradePromptCell.reuseIdentifier,
+                for: indexPath
+            ) as! OffersDetailUpgradePromptCell
+            cell.configure(
+                title: "Upgrade Now To Join Offer!",
+                subtitle: "Galaxy Privilege Diamond Members and above can enjoy access to this exclusive offer.",
+                description: "The more you spend, the more you earn! Every spend at Galaxy Macau helps you level up your membership.",
+                methods: upgradePromptMethods
             )
             return cell
 
